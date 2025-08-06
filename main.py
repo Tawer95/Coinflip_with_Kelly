@@ -11,12 +11,12 @@ prob_win = 0.5                  # вероятность победы
 gain_factor = 2                 # остаток от ставки после победы
 lose_factor = 0.4               # остаток от ставки после проигрыша
 
-Kelly_criterion = False          # расчитывать критерий Келли
+Kelly_criterion = False         # расчитывать критерий Келли
 manual_fraction = None          # кастомный метод для изменения ставки вопреки оптимальном по критерию Келли, если None, то он сам будет высчитывать оптимальный
 
 # === Комиссия ===
-fee_on = False                  # включены ли комиссии площадки
-fee_rate = 0.001                # размер комиссии, 0.001 = 0.1% комиссии
+fee_on = False                   # включены ли комиссии площадки
+fee_rate = 0.002                # размер комиссии, 0.001 = 0.1% комиссии
 
 
 def get_kelly_fraction(p, gain, loss, fee=0):
@@ -30,6 +30,13 @@ def get_kelly_fraction(p, gain, loss, fee=0):
             return -np.inf
     result = minimize_scalar(neg_kelly, bounds=(0, 1/loss-1e-6), method='bounded')
     return result.x
+
+def sci_fmt(val):
+    if val == 0:
+        return "0"
+    exp = int(np.floor(np.log10(abs(val))))
+    base = val / 10**exp
+    return f"{base:.2g} × 10^{exp}"
 
 p = prob_win
 q = 1 - prob_win
@@ -124,6 +131,12 @@ ax.plot(mean_line, color='r', linestyle='--', linewidth=2, label='Арифмет
 
 # Геометрическое среднее (синяя пунктирная) + яркая точка на конце
 ax.plot(geom_mean, color='b', linestyle='--', linewidth=2, label='Геометрическое среднее')
+
+# Значения справа только для средних:
+ax.text(num_games + 8, mean_line[-1], sci_fmt(mean_line[-1]), color='r',
+        va='center', fontsize=11, fontweight='bold', backgroundcolor='white')
+ax.text(num_games + 8, geom_mean[-1], sci_fmt(geom_mean[-1]), color='b',
+        va='center', fontsize=11, fontweight='bold', backgroundcolor='white')
 
 # Теоретическое ожидание (зелёная пунктирная)
 ax.plot(theoretical_ev, 'g--', linewidth=2, label='Математическое ожидание', zorder=4)
